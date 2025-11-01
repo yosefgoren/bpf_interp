@@ -36,7 +36,7 @@ class FilterGeneratorC:
     
     def __post_init__(self):
         self.var_name: str = f"filter_{self.idx}_ops"
-        self.c_impl: str = f"struct sock_filter {self.var_name}[] = " + "{\n" + compile_bpf_to_c(self.bpf) + "\n};"
+        self.c_impl: str = f"struct sock_filter {self.var_name}[] = //{self.bpf}" + "\n{\n" + compile_bpf_to_c(self.bpf) + "\n};"
         self.c_fprog_entry: str = "{ " + f"ARR_LEN({self.var_name}), {self.var_name}" + " },"
 
 
@@ -60,8 +60,8 @@ class PacketGeneratorC:
         self.var_name: str = f"packet_{self.idx}_data"
         self.scapy_pkt = eval(self.scapy_exp)
         self.bytes = bytes(self.scapy_pkt)
-        self.c_impl = f"uint8_t {self.var_name}[] = " "{" + ", ".join([hex(b) for b in self.bytes]) + "};"
-        self.arr_entry = "{ " + f"sizeof({self.var_name}), {self.var_name}" + "},"
+        self.c_impl = f"uint8_t {self.var_name}[] = //{self.scapy_exp}\n" "\t{ " + ", ".join([hex(b) for b in self.bytes]) + " };\n"
+        self.arr_entry = "{ " + f"sizeof({self.var_name}), {self.var_name}" + " },"
 
 
 def gen_packets_c() -> str:
