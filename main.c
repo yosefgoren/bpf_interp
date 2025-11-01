@@ -67,23 +67,27 @@ void print_results_tables(int** expected_results, int** gotten_results) {
     }
 }
 
-#define NUM_ITERS (1)
+#define NUM_ITERS (100000)
 
-int main() {
+void run_btach_interp_on_all(bpf_batch_interp_t interp, int** put_results) {
     struct timespec start, stop;
-    
-    int** pcap_results = allocate_results_table();
-    int** yogo_results = allocate_results_table();
-    printf("Done allocating tables\n");
     
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
     for(int i = 0; i < NUM_ITERS; ++i) {
-        nested_loop_pcap_interp(all_filters, N_FILTERS, all_packets, N_PACKETS, pcap_results);
-        nested_loop_yogo_interp(all_filters, N_FILTERS, all_packets, N_PACKETS, yogo_results);
+        interp(all_filters, N_FILTERS, all_packets, N_PACKETS, put_results);
     }
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &stop);
     double duration_ns = (stop.tv_sec - start.tv_sec) * 1e9 + (stop.tv_nsec - start.tv_nsec);
     printf("average processing time is %lf nanoseconds\n", duration_ns/(N_FILTERS * N_PACKETS * NUM_ITERS));
+}
+
+int main() {
+    int** pcap_results = allocate_results_table();
+    int** yogo_results = allocate_results_table();
+    printf("Done allocating tables\n");
+    
+    run_btach_interp_on_all(nested_loop_pcap_interp, pcap_results);
+    run_btach_interp_on_all(nested_loop_yogo_interp, yogo_results);
 
     print_results_tables(pcap_results, yogo_results);
     printf("Done printing results\n");
