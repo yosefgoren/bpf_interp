@@ -8,6 +8,7 @@
 
 typedef struct {
     size_t size;
+    const char* scapy_exp;
     uint8_t* buf;
 } packet_t;
 

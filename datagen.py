@@ -49,7 +49,10 @@ def gen_filters_c() -> str:
     all_filters_content = "\n".join([f"\t{g.c_fprog_entry}" for g in generators])
     all_filters_decl = "struct sock_fprog all_filters[] = {\n" + all_filters_content + "\n};"
 
-    return filter_impls + "\n\n" + all_filters_decl
+    filter_expressions = "".join([f"\t\"{g.bpf}\",\n" for g in generators])
+    filter_expressions_decl = "const char* filter_expressions[] = {\n" + filter_expressions + "};"
+
+    return filter_impls + "\n\n" + all_filters_decl + "\n" + filter_expressions_decl
 
 @dataclasses.dataclass
 class PacketGeneratorC:
@@ -61,7 +64,7 @@ class PacketGeneratorC:
         self.scapy_pkt = eval(self.scapy_exp)
         self.bytes = bytes(self.scapy_pkt)
         self.c_impl = f"uint8_t {self.var_name}[] = //{self.scapy_exp}\n" "\t{ " + ", ".join([hex(b) for b in self.bytes]) + " };\n"
-        self.arr_entry = "{ " + f"sizeof({self.var_name}), {self.var_name}" + " },"
+        self.arr_entry = "{ " + f"sizeof({self.var_name}), \"{self.scapy_exp}\", {self.var_name}" + " },"
 
 
 def gen_packets_c() -> str:
@@ -89,7 +92,7 @@ def gen():
     packets_c = gen_packets_c()
     suffix_c = get_suffix_c()
     
-    code = "\n".join([prefix_c, filters_c, packets_c, suffix_c])
+    code = "\n\n".join([prefix_c, filters_c, packets_c, suffix_c])
     print(code)
 
 if __name__ == "__main__":
