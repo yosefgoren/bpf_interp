@@ -3,3 +3,4 @@ libpcap.so.1
 .vscode/
 __pycache__/
 main
+*.o

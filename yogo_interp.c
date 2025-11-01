@@ -1,3 +1,7 @@
+#include <sys/types.h>
+
+#include "yogo_interp.h"
+#include "pcap/bpf.h"
 
 struct bpf_vm_state {
     uint32_t pc;
@@ -6,7 +10,7 @@ struct bpf_vm_state {
     uint32_t M[16];
 };
 
-int check_filter(struct sock_fprog* filter, packet_t* packet) {
+int yogo_interp(struct sock_fprog* filter, packet_t* packet) {
     struct bpf_vm_state state = {0};
 
     for(; state.pc < filter->len; ++state.pc) {
@@ -21,3 +25,5 @@ int check_filter(struct sock_fprog* filter, packet_t* packet) {
     }
     return 0;
 }
+
+DECLARE_NESTED_LOOP_INTERP(yogo_interp)
